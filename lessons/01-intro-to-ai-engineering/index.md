@@ -44,9 +44,9 @@ This course is structured around a simple loop:
 Build → Eval → Improve → Eval → Improve → ...
 ```
 
-**Day 1** is about building and measuring. You will create the agent, wire up the chat interface, write a golden dataset of test cases, and build automated scorers. By the end of Day 1 you will have a working agent AND a baseline eval score.
+The first half of the course is about building and measuring. You will create the agent, wire up the chat interface, write a golden dataset of test cases, and build automated scorers. By the end of that phase you will have a working agent AND a baseline eval score.
 
-**Day 2** is about systematic improvement. Each lesson applies one technique (context engineering, better tools, RAG, etc.), then runs evals to measure the impact. Every change is measured. This is the professional workflow: you never ship an improvement you have not evaluated.
+The second half is about systematic improvement. Each lesson applies one technique (context engineering, better tools, RAG, etc.), then runs evals to measure the impact. Every change is measured. This is the professional workflow: you never ship an improvement you have not evaluated.
 
 The reason this matters is that AI systems are probabilistic. The same input can produce different outputs. You cannot just "eyeball it" and ship. Evals are your test suite, your regression detector, and your proof that things are getting better.
 

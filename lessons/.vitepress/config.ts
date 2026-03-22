@@ -6,7 +6,7 @@ export default defineConfig({
   themeConfig: {
     sidebar: [
       {
-        text: "Day 1 — Build & Measure",
+        text: "Lessons",
         items: [
           {
             text: "01. Intro to AI Engineering",
@@ -28,11 +28,6 @@ export default defineConfig({
             text: "05. Automated Scorers",
             link: "/05-automated-scorers/",
           },
-        ],
-      },
-      {
-        text: "Day 2 — Improve Loop",
-        items: [
           {
             text: "06. Context Engineering",
             link: "/06-context-engineering/",
@@ -44,7 +39,7 @@ export default defineConfig({
           { text: "08. RAG", link: "/08-rag/" },
           { text: "09. Gen UI", link: "/09-gen-ui/" },
           {
-            text: "10. Human-in-the-Loop",
+            text: "10. Human in the Loop",
             link: "/10-human-in-the-loop/",
           },
           {
