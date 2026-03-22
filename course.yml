@@ -1,0 +1,261 @@
+StartDate: 2026-06-15
+EndDate: 2026-06-16
+
+Title: AI Engineering Fundamentals
+Subtitle: "Become an AI Engineer"
+
+Teachers:
+  - moss
+
+Excerpt: >
+  Stop building chat wrappers. Learn the discipline of AI Engineering by
+  building a real agentic application from first principles. Every AI demo's well, learn how
+  to improve it and keep it accurate over time like the professionals do.
+Benefits:
+  - "The AI Engineer Profession: What the role actually is in 2026, how it differs from ML engineering, and why evals are your new test suite"
+  - "Agent Infrastructure: Build a stateful chat agent on Cloudflare Workers using the Agents SDK"
+  - "The Eval Discipline: Write golden datasets, build automated scorers (code-based and LLM-as-judge), and run eval suites that catch regressions"
+  - "Context Engineering: Master the emerging discipline of curating exactly the right tokens for your model at inference time"
+  - "Advanced Tool Use: Implement sandboxed code execution, tool search for large tool libraries, and few-shot tool examples"
+  - "RAG: Add retrieval-augmented generation with Cloudflare Vectorize so your agent draws on real domain knowledge"
+  - "Streaming Chat UX: Build a React chat interface that handles streaming tokens, tool call status, generative UI, and human-in-the-loop flows"
+  - "Agent Architectures: Go beyond the basic agent loop with research-backed patterns like Observe-Predict-Update, multi-agent handoffs, and voting"
+  - "The Data Flywheel: Capture user corrections as eval data and build feedback loops that make your agent better with every interaction"
+
+Summary: >
+  In this two-day workshop, you'll learn AI Engineering as a discipline.
+  Beyond just calling an LLM API, but how to build, evaluate, and
+  continuously improve AI-powered systems. You start with a pre-built
+  diagraming canvas and throughout the course turning it into an intelligent
+  design tool with an agentic chat interface. First we'll build
+  the agent and establishing rigorous evaluation. Next we'll
+  systematically improve the eval scores through context engineering,
+  advanced tool use, RAG, better architectures, and production feedback
+  loops. Every improvement is measured. By the end, you'll understand
+  why 70% of AI Engineer job postings in 2026 center on RAG, evals,
+  agents, and production deployment — and you'll have practiced all of
+  them.
+
+Audience:
+  Overview:
+    - Full-stack JS/TS developers ready to specialize in AI Engineering
+    - Engineers who use tools like Claude Code or Cursor and want to understand how to build these systems
+    - Developers who have built basic agents and want to learn the professional discipline around shipping them
+  Prerequisites:
+    - Comfortable with TypeScript and React
+    - Basic understanding of LLM APIs (have called one before)
+    - Familiarity with Node.js
+    - A Cloudflare account (free tier works)
+
+# ─────────────────────────────────────────────
+#  DAY 1 — "Build the MVP, Measure Everything"
+# ─────────────────────────────────────────────
+#
+#  The first day follows the AI engineer's workflow:
+#  build something, then immediately establish evals
+#  before changing anything else. Students leave Day 1
+#  with a working agent AND a baseline eval score.
+#
+#  Lessons 1-3: Build the agent + wire up the UI
+#  Lessons 4-5: Establish the eval discipline
+#
+# ─────────────────────────────────────────────
+
+Schedule:
+  # ── Day 1 ──────────────────────────────────
+  #
+  # Lesson 1 — AI Engineering in 2026
+  #   Concept: What is an AI Engineer? Not ML, not research — you are
+  #   a "system builder" who turns foundation models into dependable
+  #   product features. Cover the 12-Factor Agents principles, the
+  #   Build→Eval→Improve loop, and why evals are TDD for AI.
+  #   Live code: Tour the starter app (Excalidraw canvas). Set up
+  #   the project, Cloudflare account, and dev environment.
+  #   References:
+  #     - 12-Factor Agents (github.com/humanlayer/12-factor-agents)
+  #     - "What 1,000+ Job Descriptions Reveal About the AI Engineer Role"
+  #     - LangChain State of AI Agents report (57% in production)
+  #
+  - 0930: "Intro to AI Engineering"
+
+  - 1030: "Break"
+
+  # Lesson 2 — Your First Cloudflare Agent
+  #   Concept: Agent infrastructure — Cloudflare Agents SDK on Workers.
+  #   The agent loop (receive message → think → act → respond).
+  #   Structured output with JSON schemas so the agent can control
+  #   the canvas programmatically. First tools and how the model
+  #   selects them.
+  #   Live code: Build the agent class, define Excalidraw element
+  #   schemas, create the first tool (generateDiagram), and watch
+  #   the agent draw its first shape on the canvas.
+  #
+  - 1045: "Your First Cloudflare Agent"
+
+  - 1145: "Break"
+
+  # Lesson 3 — The Chat Experience
+  #   Concept: What makes a good AI chat UX — streaming responses,
+  #   showing tool call status ("Drawing flowchart..."), partial
+  #   rendering, and error states. This is the React lesson.
+  #   Live code: Build the chat panel component. Implement streaming
+  #   from the agent. Render tool call status indicators. Wire the
+  #   chat to the agent API. Handle markdown rendering.
+  #
+  - 1200: "The Chat Experience"
+
+  - 1300: "Lunch"
+
+  # Lesson 4 — The Eval Discipline
+  #   Concept: Why evals are the single most important skill for an
+  #   AI engineer. Golden datasets: handcrafted test cases from real
+  #   scenarios. Manual evals: running them and scoring by hand first.
+  #   Metrics: pass@k (can it ever succeed?) vs pass^k (is it reliable?).
+  #   Capability evals vs regression evals.
+  #   Live code: Write 15-20 golden test cases for the diagram agent.
+  #   Build the eval harness scaffold. Run the first manual eval.
+  #   Record baseline scores.
+  #   References:
+  #     - Anthropic "Demystifying Evals for AI Agents"
+  #
+  - 1345: "The Eval Discipline"
+
+  - 1500: "Break"
+
+  # Lesson 5 — Automated Scorers & Eval Harness
+  #   Concept: Three grader types — code-based (fast, deterministic),
+  #   LLM-as-judge (flexible, nuanced), and human (gold standard).
+  #   When to use each. Building composite scores. Balanced test sets
+  #   (positive AND negative cases). Graduating capability evals to
+  #   regression evals. Avoiding overfitting. Running evals in CI/CD.
+  #   Live code: Build code-based graders (does the output parse?
+  #   does it contain the right element types? does it match the
+  #   schema?). Build an LLM-as-judge scorer for diagram quality.
+  #   Add negative test cases. Wire scorers into the eval harness.
+  #   Run the full automated suite. Record Day 1 baseline.
+  #
+  - 1515: "Automated Scorers & Eval Harness"
+
+  - 1615: "End"
+
+  # ── Day 2 ──────────────────────────────────
+  #
+  # "The Improvement Loop"
+  #
+  # Every lesson on Day 2 follows the same pattern:
+  #   1. Learn a strategy
+  #   2. Apply it to the agent
+  #   3. Run evals to measure the improvement
+  #
+  # Students see their eval scores climb throughout
+  # the day as they apply each technique.
+  #
+  # ────────────────────────────────────────────
+
+  # Lesson 6 — Context Engineering
+  #   Concept: The emerging discipline of curating tokens. System
+  #   prompt design (the Goldilocks zone). Context budgets per task.
+  #   Canvas state as context — what to include, what to summarize.
+  #   Compaction strategies for long chat sessions. Few-shot examples.
+  #   Live code: Redesign the system prompt. Implement canvas state
+  #   serialization (what elements exist, their relationships).
+  #   Add compaction for chat history. Run evals — did scores improve?
+  #   References:
+  #     - Anthropic "Effective Context Engineering for AI Agents"
+  #
+  - 0930: "Context Engineering"
+
+  - 1015: "Break"
+
+  # Lesson 7 — Advanced Tool Use
+  #   Concept: Three advanced patterns from Anthropic's research —
+  #   (1) Tool Search: lazy-load tools from a large library instead
+  #   of stuffing them all into context. (2) Sandboxed Code Execution:
+  #   let the agent write and run code to generate complex diagrams.
+  #   (3) Tool Use Examples: few-shot examples that show the model
+  #   HOW to call tools correctly.
+  #   Live code: Add new tools (modify diagram, query canvas state,
+  #   generate from code). Implement tool examples. Set up sandboxed
+  #   execution. Run evals — did scores improve?
+  #   References:
+  #     - Anthropic "Advanced Tool Use"
+  #
+  - 1030: "Advanced Tool Use"
+
+  - 1115: "Break"
+
+  # Lesson 8 — RAG
+  #   Concept: When to use RAG vs context stuffing. Embeddings and
+  #   vector search with Cloudflare Vectorize. Chunking strategies.
+  #   Retrieval pipeline design. Adding domain knowledge so the agent
+  #   can suggest architecture patterns, AWS diagrams, etc.
+  #   Live code: Set up Vectorize. Embed a corpus of diagram patterns
+  #   and architecture best practices. Add a retrieval tool to the
+  #   agent. Run evals — did domain-specific scores improve?
+  #
+  - 1130: "RAG"
+
+  - 1210: "Lunch"
+
+  # Lesson 9 — Gen UI
+  #   Concept: Generative UI — rendering rich, interactive tool
+  #   results instead of plain text. Diagram previews in the chat,
+  #   option cards for alternative layouts, streaming partial UI
+  #   updates, and interactive components. How to design tool
+  #   responses that map to React components.
+  #   Live code: Build Gen UI components for diagram previews and
+  #   option cards. Wire tool results to custom renderers. Add
+  #   streaming partial updates. Run evals — did UX quality scores
+  #   improve?
+  #
+  - 1310: "Gen UI"
+
+  # Lesson 10 — Human-in-the-Loop
+  #   Concept: When to pause and ask for human approval before the
+  #   agent acts. Confirmation flows for destructive actions (clear
+  #   canvas, delete elements, major redesigns). Approval/rejection
+  #   patterns in chat. Undo/redo integration. Building trust by
+  #   giving users control.
+  #   Live code: Add confirmation flow for destructive tool calls.
+  #   Build approval UI using Gen UI components from previous lesson.
+  #   Implement undo integration. Run evals — did safety scores
+  #   improve?
+  #
+  - 1350: "Human-in-the-Loop"
+
+  - 1430: "Break"
+
+  # Lesson 11 — Agent Architectures
+  #   Concept: Moving beyond the basic "pick a tool" loop. Research-
+  #   backed architectures: Observe→Predict→Update (state machine
+  #   agents), ReAct with self-reflection, multi-agent handoffs for
+  #   specialized tasks, and voting/consensus for reliability.
+  #   When each architecture helps and when it hurts. The "small,
+  #   focused agents" principle from 12-Factor Agents.
+  #   Live code: Refactor the agent to use Observe→Plan→Act with
+  #   explicit state tracking. Run evals — did the architecture
+  #   change improve complex diagram scores?
+  #   References:
+  #     - ReAct (Yao et al.) — Reasoning + Acting
+  #     - Reflexion (Shinn et al.) — Self-reflection loops
+  #     - 12-Factor Agents: "Small, Focused Agents"
+  #
+  - 1445: "Agent Architectures"
+
+  - 1530: "Break"
+
+  # Lesson 12 — The Data Flywheel
+  #   Concept: The ultimate AI engineering superpower — turning
+  #   production usage into eval data. Capture user corrections
+  #   (every Undo is a signal). Build feedback loops that generate
+  #   new eval cases automatically. Performance: latency budgets,
+  #   streaming-first design, caching, token efficiency.
+  #   The continuous improvement cycle.
+  #   Live code: Instrument Undo actions to capture before/after
+  #   snapshots. Build the pipeline that converts corrections into
+  #   eval records. Add latency tracking. Review final eval scores —
+  #   compare Day 1 baseline to Day 2 final. How far did we come?
+  #
+  - 1545: "The Data Flywheel"
+
+  - 1625: "End"
