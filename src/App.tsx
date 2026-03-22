@@ -7,6 +7,12 @@ import Canvas from "./components/Canvas";
 import ChatPanel from "./components/chat/ChatPanel";
 import "./App.css";
 
+// One agent instance per page load. The canvas state lives only in the
+// browser, so persisting chat history across refreshes would leave a dead
+// conversation referencing diagrams that no longer exist. Generated at the
+// module level so React StrictMode's double mount doesn't change it.
+const sessionId = crypto.randomUUID();
+
 export default function App() {
   const [excalidrawAPI, setExcalidrawAPI] =
     useState<ExcalidrawImperativeAPI | null>(null);
@@ -20,8 +26,8 @@ export default function App() {
     setExcalidrawAPI(api);
   }, []);
 
-  // Connect to the agent Durable Object
-  const agent = useAgent({ agent: "design-agent" });
+  // Connect to a fresh agent instance for this page load
+  const agent = useAgent({ agent: "design-agent", name: sessionId });
 
   // useAgentChat manages the chat protocol on top of the agent connection.
   // It gives us the messages array, a sendMessage function, and a status.
