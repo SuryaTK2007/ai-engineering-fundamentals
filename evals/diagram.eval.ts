@@ -7,8 +7,8 @@
 // Requires BRAINTRUST_API_KEY in .dev.vars (free signup at braintrust.dev).
 
 import { readFileSync } from "node:fs";
-import { join, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { config } from "dotenv";
 import { Eval } from "braintrust";
 import { Factuality } from "autoevals";
 import { generateText, stepCountIs } from "ai";
@@ -19,31 +19,9 @@ import { SYSTEM_PROMPT } from "../src/system-prompt";
 import { schemaScorer, type AgentOutput } from "./scorers/schema";
 import { structureScorer } from "./scorers/structure";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, "..");
-
-// Load OPENAI_API_KEY and BRAINTRUST_API_KEY from .dev.vars
-function loadDevVars(): Record<string, string> {
-  try {
-    const content = readFileSync(join(ROOT, ".dev.vars"), "utf-8");
-    const vars: Record<string, string> = {};
-    for (const line of content.split("\n")) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed.startsWith("#")) continue;
-      const [key, ...rest] = trimmed.split("=");
-      if (key) vars[key.trim()] = rest.join("=").trim();
-    }
-    return vars;
-  } catch {
-    return {};
-  }
-}
-
-const devVars = loadDevVars();
-// Set process.env so braintrust and autoevals can read them.
-for (const [k, v] of Object.entries(devVars)) {
-  if (!process.env[k]) process.env[k] = v;
-}
+// Load env vars from .dev.vars (npm run eval also wraps this with dotenv-cli
+// so braintrust sees BRAINTRUST_API_KEY before it boots).
+config({ path: ".dev.vars" });
 
 const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -55,8 +33,9 @@ interface GoldenTestCase {
   category: string;
 }
 
-const goldenPath = join(ROOT, "evals/datasets/golden.json");
-const testCases: GoldenTestCase[] = JSON.parse(readFileSync(goldenPath, "utf-8"));
+const testCases: GoldenTestCase[] = JSON.parse(
+  readFileSync(join("evals", "datasets", "golden.json"), "utf-8")
+);
 
 Eval<string, AgentOutput, string[]>("Diagram Agent", {
   // Map our golden dataset onto Braintrust's expected shape.
