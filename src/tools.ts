@@ -61,16 +61,33 @@ export const tools = {
 
   modifyDiagram: tool({
     description:
-      "Modify an existing element on the canvas. Use this when the user wants to change, update, move, resize, or restyle an existing element. You need to know the element's id.",
+      "Modify an existing element on the canvas by id. Set only the fields you want to change; everything else is left alone. Use this for tweaks like recolor, rename, move, resize, restyle. The element id must come from the current canvas state.",
     inputSchema: z.object({
       elementId: z.string().describe("The id of the element to modify"),
-      updates: z.record(z.string(), z.unknown()).describe(
-        "Object with the properties to update (e.g. { x: 100, backgroundColor: '#ff0000' })"
-      ),
+      // Explicit field list rather than a free form record. OpenAI's strict
+      // tool calling rejects unconstrained additionalProperties, and giving
+      // the model an enumerated list also tells it exactly what's tweakable.
+      updates: z
+        .object({
+          x: z.number().optional().describe("New x position"),
+          y: z.number().optional().describe("New y position"),
+          width: z.number().optional().describe("New width"),
+          height: z.number().optional().describe("New height"),
+          text: z.string().optional().describe("New label or text content"),
+          fontSize: z.number().optional(),
+          textAlign: z.enum(["left", "center", "right"]).optional(),
+          strokeColor: z.string().optional().describe("Hex stroke color"),
+          backgroundColor: z.string().optional().describe("Hex fill color"),
+          fillStyle: z.enum(["solid", "hachure", "cross-hatch"]).optional(),
+          strokeWidth: z.number().optional(),
+          roughness: z.number().optional(),
+          opacity: z.number().optional(),
+        })
+        .describe("Fields to change. Omit anything you don't want to touch."),
     }),
     execute: async ({ elementId, updates }) => {
-      // In a real app we would look up the element and merge.
-      // For now, return the updates so the client can apply them.
+      // Pass through. The client merges the updates into the existing element
+      // via the Excalidraw API.
       return { elementId, updates };
     },
   }),
