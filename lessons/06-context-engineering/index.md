@@ -129,11 +129,13 @@ export function serializeCanvasState(elements: unknown[]): string {
 
   for (const el of els) {
     // ... walk elements, collecting type counts and per-element lines.
+    // Each line gets the element's id, label, position, and size via fmtPos.
     // Arrows resolve their startBinding/endBinding to ref strings:
     if (type === "arrow" || type === "line") {
-      lines.push(`- ${type} ${id}: ${from} → ${to}`);
+      lines.push(`- ${type} ${id}: ${from} → ${to}${fmtPos(el)}`);
     } else {
-      lines.push(label ? `- ${type} ${id} "${label}"` : `- ${type} ${id}`);
+      const labelPart = label ? ` "${label}"` : "";
+      lines.push(`- ${type} ${id}${labelPart}${fmtPos(el)}`);
     }
   }
 
@@ -151,14 +153,16 @@ The output looks like this for a simple flow:
 
 ```
 Canvas contains 3 rectangles, 2 arrows:
-- rectangle rect_login "Login"
-- rectangle rect_db "Database"
-- rectangle rect_api "API"
-- arrow arrow_1: rect_login ("Login") → rect_api ("API")
-- arrow arrow_2: rect_api ("API") → rect_db ("Database")
+- rectangle rect_login "Login" at (100, 100) 200x80
+- rectangle rect_api "API" at (380, 100) 200x80
+- rectangle rect_db "Database" at (660, 100) 200x80
+- arrow arrow_1: rect_login ("Login") → rect_api ("API") at (300, 140)
+- arrow arrow_2: rect_api ("API") → rect_db ("Database") at (580, 140)
 ```
 
-That's the entire thing. About 200 characters for a five element diagram. Compact, readable, gives the model exactly what it needs: ids, labels, and connections.
+That's the entire thing. About 300 characters for a five element diagram. Compact, readable, gives the model what it needs: ids, labels, **positions and sizes**, and connections.
+
+Why include x/y and width/height? Because the agent often needs to *position relative to existing elements*. "Add a Cache box between rect_api and rect_db" is impossible without knowing where rect_api and rect_db actually are. Coordinates are cheap (one short field per element) and unlock spatial reasoning. We round to integers because the model doesn't care about subpixel precision and rounded numbers are fewer tokens.
 
 ### Wiring it through `agent-core`
 
@@ -330,7 +334,7 @@ You only make a *new* eval file when the dataset, scorers, or task interface its
 
 The reason this works without manual naming: every experiment carries its full git context, so you can always answer "what code produced this run?" by looking at the metadata. Commit your changes before running the eval and the audit trail writes itself.
 
-Lesson 5 → lesson 6 results on a real run:
+Lesson 5 → lesson 6 results from one of my real runs:
 
 | Scorer | Lesson 5 | Lesson 6 | Δ |
 |---|---|---|---|
@@ -339,9 +343,17 @@ Lesson 5 → lesson 6 results on a real run:
 | Structure | 63% | **67%** | +4 |
 | **Preservation** | **25%** | **50%** | **+25** |
 
-Every metric moved up. Schema hit the ceiling. The headline is **Preservation doubled** — the canvas state in the prompt is doing exactly what we wanted: the agent now knows which ids exist and reaches for `modifyDiagram` instead of regenerating from scratch.
+**Your numbers will not match these exactly.** LLMs are non-deterministic at temperature > 0, the model version drifts, your environment has a different latency profile, and there's run-to-run noise even on the same code (often a few percent in either direction). What matters isn't hitting the same digits — it's the **direction** and **which scorers move**:
 
-It's not 100 yet. The remaining failures are cases where the agent still fires `generateDiagram` for tweaks. Lesson 7 (advanced tools) sharpens the tools themselves and should push this further. Lesson 11 (planning mode) gives the agent a chance to think before acting, which helps the harder cases.
+- **Schema** should be at or near 100. The new prompt is strict enough that the agent shouldn't be producing malformed elements anymore. If you see this drop, look at what the agent is generating in the dashboard.
+- **Preservation** should jump significantly (a 1.5x to 2x improvement is the rough target). This is the headline metric for lesson 6 — the canvas state in the prompt is the whole point. If Preservation barely moves, something is wrong with how the canvas state is reaching the prompt.
+- **Structure** and **LabelKeywords** should nudge up but not dramatically. Better prompt + better behavioral guidelines help, but they're not the core point of this lesson.
+
+The shape of the change is what tells you context engineering is working. Specific digits are noise.
+
+That said: in my run, every metric moved up, Schema hit the ceiling, and **Preservation doubled** (25 → 50) — the canvas state in the prompt is doing exactly what we wanted: the agent now knows which ids exist and reaches for `modifyDiagram` instead of regenerating from scratch.
+
+Preservation isn't 100, and that's fine. The remaining failures are cases where the agent still fires `generateDiagram` for tweaks. Lesson 7 (advanced tools) sharpens the tools themselves and should push this further. Lesson 11 (planning mode) gives the agent a chance to think before acting, which helps the harder cases.
 
 ### A small but important fix: be the client in the eval
 
