@@ -80,13 +80,19 @@ Each page load gets a unique session. The browser canvas and the chat history st
 
 ## Canvas Integration
 
-When a `tool-generateDiagram` part reaches the `output-available` state, its `output` field contains the elements the model generated. We need to apply them to the Excalidraw canvas via the API ref we set up in lesson 1.
+When a `tool-generateDiagram` or `tool-modifyDiagram` part reaches the `output-available` state, its `output` field contains the data we need to apply to the Excalidraw canvas via the API ref we set up in lesson 1.
 
-Two gotchas:
+A handful of gotchas, all of which are easy to miss and matter the moment the agent actually exercises the modify path:
 
 1. **Excalidraw needs full element data.** Our agent generates simplified element shapes (just position, dimensions, colors, text). Excalidraw's internal scene wants additional fields like `seed`, `versionNonce`, `index`, etc. The library exports a helper called `convertToExcalidrawElements` that takes a skeleton element and fills in everything else.
 
-2. **Apply each tool output once.** Messages re render every time a chunk arrives. If we naively apply the tool output every time the effect runs, we will replay the same diagram on every render. Track applied tool calls by `toolCallId` in a `useRef` Set.
+2. **Pass `regenerateIds: false` to `convertToExcalidrawElements`.** By default the helper throws away the ids the agent picked and assigns random uuids. That breaks every later `modifyDiagram` call, because the agent confidently sends back the id it remembers picking (`rect_login`) and we can't find it on the canvas (now named `HJDBm-mSDyat...`). Pass the flag and the agent's ids survive.
+
+3. **`modifyDiagram` is a separate code path.** We need a parallel handler for `tool-modifyDiagram` that merges the updates into the matching element. Use Excalidraw's `newElementWith` helper — it bumps `version` and `versionNonce` the way the reconciler expects. Hand-rolled spread merges look right but skip the re-render.
+
+4. **Pass `captureUpdate: CaptureUpdateAction.IMMEDIATELY` to `updateScene` for the modify path.** The default is `EVENTUALLY`, which defers the change "until a future increment" — and for a one-shot tool result with nothing else happening on the canvas, "eventually" never comes.
+
+5. **Apply each tool output once.** Messages re render every time a chunk arrives. If we naively apply the tool output every time the effect runs, we'll replay the same diagram on every render. Track applied tool calls by `toolCallId` in a `useRef` Set.
 
 The full pattern:
 
@@ -99,21 +105,40 @@ useEffect(() => {
     if (message.role !== "assistant") continue;
     for (const part of message.parts ?? []) {
       if (
-        part.type === "tool-generateDiagram" &&
-        part.state === "output-available" &&
-        !appliedToolCalls.current.has(part.toolCallId)
+        part.type !== "tool-generateDiagram" &&
+        part.type !== "tool-modifyDiagram"
       ) {
+        continue;
+      }
+      if (part.state !== "output-available") continue;
+      if (appliedToolCalls.current.has(part.toolCallId)) continue;
+
+      if (part.type === "tool-generateDiagram") {
         appliedToolCalls.current.add(part.toolCallId);
-        const elements = convertToExcalidrawElements(part.output.elements);
+        const elements = convertToExcalidrawElements(
+          part.output.elements,
+          { regenerateIds: false }
+        );
         excalidrawAPI.updateScene({ elements });
         excalidrawAPI.scrollToContent(elements, { fitToContent: true });
+      } else if (part.type === "tool-modifyDiagram") {
+        appliedToolCalls.current.add(part.toolCallId);
+        const { elementId, updates } = part.output;
+        const current = excalidrawAPI.getSceneElements();
+        const next = current.map((el) =>
+          el.id === elementId ? newElementWith(el, updates) : el
+        );
+        excalidrawAPI.updateScene({
+          elements: next,
+          captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+        });
       }
     }
   }
 }, [messages, excalidrawAPI]);
 ```
 
-After `updateScene`, calling `scrollToContent` zooms and pans the canvas so the new elements are centered and visible.
+After `updateScene`, calling `scrollToContent` zooms and pans the canvas so newly generated elements are centered and visible. We don't scroll on modify because the user is presumably already looking at the element they asked to change.
 
 ## Building the Chat Experience
 
@@ -296,7 +321,11 @@ Wire the hooks, watch messages for tool outputs, and apply them to the canvas:
 ```tsx
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types";
-import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
+import {
+  convertToExcalidrawElements,
+  CaptureUpdateAction,
+  newElementWith,
+} from "@excalidraw/excalidraw";
 import { useAgent } from "agents/react";
 import { useAgentChat } from "@cloudflare/ai-chat/react";
 import Canvas from "./components/Canvas";
@@ -329,7 +358,9 @@ export default function App() {
   // It gives us the messages array, a sendMessage function, and a status.
   const { messages, sendMessage, status } = useAgentChat({ agent });
 
-  // Watch messages for tool outputs and apply them to the canvas.
+  // Watch messages for tool outputs and apply them to the canvas. We handle
+  // both tools the agent has: generateDiagram (replace canvas) and
+  // modifyDiagram (patch a single existing element by id).
   useEffect(() => {
     if (!excalidrawAPI) return;
 
@@ -337,22 +368,54 @@ export default function App() {
       if (message.role !== "assistant") continue;
       for (const part of message.parts ?? []) {
         if (
-          part.type === "tool-generateDiagram" &&
-          part.state === "output-available" &&
-          !appliedToolCalls.current.has(part.toolCallId)
+          part.type !== "tool-generateDiagram" &&
+          part.type !== "tool-modifyDiagram"
         ) {
+          continue;
+        }
+        if (part.state !== "output-available") continue;
+        if (appliedToolCalls.current.has(part.toolCallId)) continue;
+
+        if (part.type === "tool-generateDiagram") {
           appliedToolCalls.current.add(part.toolCallId);
           const output = part.output as { elements?: unknown };
           const skeletonElements = output?.elements;
           if (Array.isArray(skeletonElements) && skeletonElements.length > 0) {
             // The agent returns simplified element shapes. Excalidraw needs
             // full element data (seed, versionNonce, etc.) which this helper
-            // fills in from a skeleton.
+            // fills in from a skeleton. Pass `regenerateIds: false` so the
+            // ids the agent picked survive — otherwise the canvas ends up
+            // with random uuids and any later modifyDiagram call (which uses
+            // the agent's chosen ids) silently misses every element.
             const elements = convertToExcalidrawElements(
-              skeletonElements as any
+              skeletonElements as any,
+              { regenerateIds: false }
             );
             excalidrawAPI.updateScene({ elements });
             excalidrawAPI.scrollToContent(elements, { fitToContent: true });
+          }
+        } else if (part.type === "tool-modifyDiagram") {
+          appliedToolCalls.current.add(part.toolCallId);
+          const output = part.output as {
+            elementId?: string;
+            updates?: Record<string, unknown>;
+          };
+          if (output?.elementId && output.updates) {
+            // Use Excalidraw's `newElementWith` helper to merge updates into
+            // the matching element. It bumps version + versionNonce + the
+            // updated timestamp the way the reconciler expects.
+            // CaptureUpdateAction.IMMEDIATELY forces the change into the
+            // scene store right away instead of deferring to a future tick.
+            const current = excalidrawAPI.getSceneElements();
+            const next = current.map((el) =>
+              el.id === output.elementId
+                ? newElementWith(el, output.updates as never)
+                : el
+            );
+            excalidrawAPI.updateScene({
+              elements: next,
+              captureUpdate: CaptureUpdateAction.IMMEDIATELY,
+            });
           }
         }
       }
