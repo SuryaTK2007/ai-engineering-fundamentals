@@ -29,40 +29,11 @@ export interface GoldenTestCase {
   category: Category;
 }
 
+// Always returns a single user turn. The seed elements (if any) are passed
+// separately as `canvasState` to runAgent — that's how the agent learns
+// what's already on the canvas in lesson 6+. We used to mock a fake tool
+// history here, but that workaround is gone now that canvas state is a
+// first class arg to the agent core.
 export function buildMessages(tc: GoldenTestCase): ModelMessage[] {
-  if (!tc.seed) {
-    return [{ role: "user", content: tc.input }];
-  }
-
-  const callId = `seed_${tc.id}`;
-  return [
-    { role: "user", content: tc.seed.userPrompt },
-    {
-      role: "assistant",
-      content: [
-        {
-          type: "tool-call",
-          toolCallId: callId,
-          toolName: "generateDiagram",
-          input: { elements: tc.seed.elements },
-        },
-      ],
-    },
-    {
-      role: "tool",
-      content: [
-        {
-          type: "tool-result",
-          toolCallId: callId,
-          toolName: "generateDiagram",
-          output: {
-            type: "json",
-            value: { elements: tc.seed.elements as never },
-          },
-        },
-      ],
-    },
-    { role: "assistant", content: tc.seed.assistantConfirmation },
-    { role: "user", content: tc.input },
-  ];
+  return [{ role: "user", content: tc.input }];
 }
