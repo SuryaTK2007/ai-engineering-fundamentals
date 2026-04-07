@@ -229,6 +229,20 @@ Compare against the baseline you captured at the start of the lesson. Things to 
 
 LLMs are non deterministic at temperature > 0 and there's run to run noise even on the same code. Direction and which scorers move matters more than specific digits.
 
+## A note on scorers and what they're really measuring
+
+Improving the agent isn't the only thing we do in this loop. We also improve the evals. Scorers fall into two buckets and the distinction matters more as the agent evolves.
+
+**Output based scorers** look at the final canvas (or final answer, or some end state) and don't care how the agent got there. For us that's Schema, LabelKeywords, and Structure. These tend to survive architecture changes. A regression here means something actually got worse, regardless of which lesson you're on. Invest real care in these.
+
+**Tool coupled scorers** are shaped by the specific tools that exist right now. Their meaning is tied to a particular tool surface, so when the tools change they have to be rewritten or retired.
+
+Preservation is in the second bucket, and honestly it's fundamentally broken in its current form. The two questions we wanted it to answer are "did the agent leave the elements it shouldn't have touched alone?" and "did the agent actually apply the requested change?" It doesn't really answer either of them well. Once `extractElements` simulates the canvas headlessly, any run that doesn't call `generateDiagram` passes Preservation, even one that called `modifyDiagram` with the wrong id or no useful update at all. The scorer became "did the agent avoid regenerating from scratch," which is a useful signal but not what the name promises.
+
+We're leaving it as is. Lesson 7 replaces these tools entirely, which means a new tool surface and a chance to redesign the modify side scoring against the real surface. Fixing a scorer that's about to die one lesson from now is sunk cost.
+
+This brings up the subtlety worth naming. Even when a scorer is imperfect, as long as the **before** and **after** numbers come from the **same** scorer, the **trend is still honest** even if the absolute number is questionable. That's enough to validate the change you made in this lesson. The Preservation jump tells us "putting canvas state in the prompt moved the metric in the right direction." It does not tell us "the agent now preserves canvases X percent of the time" in some absolute sense. Trust the direction, hold the absolute number loosely, and be ready to retire the scorer when the world it was measuring goes away.
+
 ## What is next
 
 Lesson 7: **advanced tool use**. The single giant `generateDiagram` tool is too coarse. We'll break it into smaller, focused tools (`addElement`, `updateElement`, `removeElement`, `alignElements`, `queryCanvas`). Each tool does one thing well, the agent makes more, smaller calls, and Structure scores climb because the model isn't doing all its layout math in a single JSON blob anymore.
