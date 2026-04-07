@@ -12,6 +12,7 @@ import {
 } from "ai";
 import { tools } from "./tools";
 import { serializeCanvasState } from "./context/canvas-state";
+import type { ExcalidrawElement } from "./schemas";
 
 export const SYSTEM_PROMPT = `# Role
 
@@ -64,12 +65,12 @@ interface AgentArgs {
   // so the model knows what already exists. Pass `[]` (or omit) for an empty
   // canvas. The worker reads this from the latest user message's
   // data-canvas-state part. The eval passes `testCase.seed?.elements`.
-  canvasState?: unknown[];
+  canvasState?: ExcalidrawElement[];
   system?: string;
   maxSteps?: number;
 }
 
-function buildSystem(base: string, canvasState: unknown[] | undefined): string {
+function buildSystem(base: string, canvasState: ExcalidrawElement[] | undefined): string {
   return `${base}\n\n# Current canvas state\n\n${serializeCanvasState(canvasState ?? [])}`;
 }
 
@@ -127,26 +128,23 @@ export async function runAgent({
 interface StepLike {
   toolResults?: {
     toolName: string;
-    input?: unknown;
-    output: unknown;
+    input?: any;
+    output: any;
   }[];
 }
 
-export function extractElements(steps: StepLike[], initial: unknown[] = []): unknown[] {
-  let canvas: Record<string, unknown>[] = (initial as Record<string, unknown>[]).map((el) => ({ ...el }));
+export function extractElements(steps: StepLike[], initial: any[] = []): any[] {
+  let canvas = [...initial]
 
   for (const step of steps) {
     for (const toolResult of step.toolResults ?? []) {
       if (toolResult.toolName === "generateDiagram") {
-        const output = toolResult.output as { elements?: unknown[] };
+        const output = toolResult.output as any
         if (Array.isArray(output?.elements)) {
-          canvas = output.elements.map((el) => ({ ...(el as object) }));
+          canvas = [...output.elements]
         }
       } else if (toolResult.toolName === "modifyDiagram") {
-        const output = toolResult.output as {
-          elementId?: unknown;
-          updates?: Record<string, unknown>;
-        };
+        const output = toolResult.output as any
         if (typeof output?.elementId === "string" && output.updates) {
           const target = canvas.find((el) => el.id === output.elementId);
           if (target) Object.assign(target, output.updates);
