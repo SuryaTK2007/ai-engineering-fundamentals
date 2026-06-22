@@ -74,16 +74,15 @@ You need accounts at four services. Three are free with no credit card. One need
 
 | Service | Why | Cost | Credit card required? |
 |---|---|---|---|
-| **OpenAI** | LLM provider for the agent | A few cents for the whole course | **Yes** |
+| **Groq** | LLM provider for the agent | Free tier available | **No** |
 | **Upstash Vector** | Vector store for RAG (lesson 8) | Free tier, very generous | No |
 | **Braintrust** | Eval platform (lessons 4+) | Free tier | No |
 | **Tavily** | Web search API for the agent's `searchWeb` tool (lesson 7) | Free tier, 1000 searches/month | No |
 
-#### OpenAI
+#### Groq
 
-1. Sign up at [platform.openai.com](https://platform.openai.com).
-2. Add a payment method. The course costs pennies but OpenAI requires a card on file before issuing API keys.
-3. Create an API key under **API keys**. Save it for the next step.
+1. Sign up at [console.groq.com](https://console.groq.com).
+2. Create an API key under **API Keys**. Save it for the next step.
 
 #### Upstash Vector
 
@@ -108,7 +107,7 @@ You need accounts at four services. Three are free with no credit card. One need
 Create `.dev.vars` at the project root:
 
 ```
-OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk-...
 UPSTASH_VECTOR_REST_URL=https://...upstash.io
 UPSTASH_VECTOR_REST_TOKEN=...
 BRAINTRUST_API_KEY=sk-...

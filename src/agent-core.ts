@@ -6,7 +6,6 @@
 import {
   generateText,
   streamText,
-  stepCountIs,
   tool,
   type LanguageModel,
   type ModelMessage,
@@ -95,7 +94,7 @@ export function streamAgent({
     system,
     messages,
     tools: buildTools(env),
-    stopWhen: stepCountIs(maxSteps),
+    maxSteps,
   });
 }
 
@@ -175,7 +174,7 @@ export async function runAgent({
     system,
     messages,
     tools: evalTools,
-    stopWhen: stepCountIs(maxSteps),
+    maxSteps,
   });
 
   return {

@@ -11,7 +11,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { config } from "dotenv";
 import { Eval } from "braintrust";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGroq } from "@ai-sdk/groq";
 
 import { runAgent } from "../src/agent-core";
 import { buildMessages, type GoldenTestCase } from "./buildMessages";
@@ -22,7 +22,7 @@ import { labelKeywordScorer } from "./scorers/labelKeyword";
 
 config({ path: ".dev.vars" });
 
-const openai = createOpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const groq = createGroq({ apiKey: process.env.GROQ_API_KEY });
 
 const testCases: GoldenTestCase[] = JSON.parse(
   readFileSync(join("evals", "datasets", "golden.json"), "utf-8")
@@ -42,7 +42,7 @@ Eval<GoldenTestCase, AgentOutput, GoldenTestCase>("Diagram Agent", {
 
   task: async (testCase) => {
     const result = await runAgent({
-      model: openai("gpt-5.4-mini"),
+      model: groq("llama-3.1-8b-instant"),
       messages: buildMessages(testCase),
       // Eval simulates a browser canvas: the seed elements become the
       // initial sim state, and queryCanvas is overridden inside runAgent to

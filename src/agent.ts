@@ -1,11 +1,11 @@
 import { AIChatAgent } from "@cloudflare/ai-chat";
 import { convertToModelMessages } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
+import { createGroq } from "@ai-sdk/groq";
 import { streamAgent } from "./agent-core";
 import { compactHistory } from "./context/compaction";
 
 interface Env extends Cloudflare.Env {
-  OPENAI_API_KEY: string;
+  GROQ_API_KEY: string;
   TAVILY_API_KEY: string;
   UPSTASH_VECTOR_REST_URL: string;
   UPSTASH_VECTOR_REST_TOKEN: string;
@@ -13,8 +13,8 @@ interface Env extends Cloudflare.Env {
 
 export class DesignAgent extends AIChatAgent<Env> {
   async onChatMessage() {
-    const openai = createOpenAI({ apiKey: this.env.OPENAI_API_KEY });
-    const model = openai("gpt-5.4-mini");
+    const groq = createGroq({ apiKey: this.env.GROQ_API_KEY });
+    const model = groq("llama-3.1-8b-instant");
 
     // Compact older history if the conversation has gotten long. The recent
     // few turns stay verbatim; everything older is collapsed into one
