@@ -50,10 +50,10 @@ export const tools = {
               .describe("1=Virgil, 2=Helvetica, 3=Cascadia"),
             textAlign: z.enum(["left", "center", "right"]).default("center"),
             points: z
-              .array(z.array(z.number()))
+              .array(z.tuple([z.number(), z.number()]))
               .optional()
               .describe(
-                "Array of [x,y] points (for arrow/line elements). Each point is a two number array.",
+                "Array of [x,y] points (for arrow/line elements). Each point is [number, number]. Points are relative to the element's x,y position.",
               ),
             startBinding: z
               .object({
