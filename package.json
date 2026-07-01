@@ -12,7 +12,10 @@
     "agent": "node scripts/test-agent.mjs"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.0",
+    "@cloudflare/ai-chat": "^0.9.3",
     "@excalidraw/excalidraw": "^0.18.0",
+    "ai": "^6.0.217",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
